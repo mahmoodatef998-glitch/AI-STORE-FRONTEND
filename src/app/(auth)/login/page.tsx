@@ -33,9 +33,24 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    // Debug: Check environment variables
+    if (typeof window !== 'undefined') {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      console.log('🔍 Environment Check:');
+      console.log('Supabase URL:', supabaseUrl || '❌ MISSING');
+      console.log('Supabase Key:', supabaseKey ? '✅ EXISTS (' + supabaseKey.substring(0, 20) + '...)' : '❌ MISSING');
+    }
+
     try {
       // Convert username/phone to email format
       const emailFormat = formatUsernameToEmail(username);
+
+      // Debug: Log what we're sending
+      console.log('🔐 Login Attempt:');
+      console.log('  Username input:', username);
+      console.log('  Email format:', emailFormat);
+      console.log('  Password length:', password.length);
 
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: emailFormat,
