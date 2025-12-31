@@ -39,12 +39,11 @@ async function fetchAPI<T>(
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
     ...options.headers,
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  } else {
+  if (!token) {
     throw new Error('Authentication required. Please login.');
   }
 

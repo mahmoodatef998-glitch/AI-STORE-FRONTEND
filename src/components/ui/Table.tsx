@@ -36,9 +36,17 @@ export function TableHeader({ children, className }: { children: ReactNode; clas
   );
 }
 
-export function TableCell({ children, className }: { children: ReactNode; className?: string }) {
+export function TableCell({ 
+  children, 
+  className,
+  colSpan 
+}: { 
+  children: ReactNode; 
+  className?: string;
+  colSpan?: number;
+}) {
   return (
-    <td className={cn('px-6 py-4 whitespace-nowrap text-sm text-gray-900', className)}>
+    <td colSpan={colSpan} className={cn('px-6 py-4 whitespace-nowrap text-sm text-gray-900', className)}>
       {children}
     </td>
   );

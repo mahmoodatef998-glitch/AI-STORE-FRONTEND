@@ -1,0 +1,23 @@
+# ============================================
+# Environment Variables للـ Frontend على Vercel
+# ============================================
+
+# ⭐ مطلوب - Supabase URL
+NEXT_PUBLIC_SUPABASE_URL=https://nueufozblbymuvzlbywf.supabase.co
+
+# ⭐ مطلوب - Supabase Anon Key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51ZXVmbG9zYmxieW11dnpsYnl3ZiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzY2OTk1NjEzLCJleHAiOjIwODI1NzE2MTN9.mhM0f4dV2cl7tjznIYzFbgXmmhdUWYDGGT5AXlCPCd8
+
+# ⭐ مطلوب - Backend API URL (بعد Deploy على Railway)
+# ⚠️ استبدل your-backend.railway.app بـ URL الـ Backend الفعلي
+NEXT_PUBLIC_API_URL=https://your-backend.railway.app/api
+
+# ============================================
+# ملاحظات:
+# ============================================
+# 1. NEXT_PUBLIC_ prefix ضروري - بدونها لن يعمل في Frontend
+# 2. NEXT_PUBLIC_API_URL يجب أن يكون URL الـ Backend بعد Deploy على Railway
+# 3. لا تضع http://localhost:3001 في Production!
+# 4. Environment: اختر Production, Preview, Development (كلهم)
+# ============================================
+
