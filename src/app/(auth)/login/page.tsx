@@ -25,7 +25,8 @@ export default function LoginPage() {
       return `${input}@phone.local`;
     }
     // Otherwise, treat as username
-    return `${input}@local`;
+    // Use @example.com instead of @local for better Supabase compatibility
+    return `${input}@example.com`;
   };
 
   const handleLogin = async (e: FormEvent) => {
