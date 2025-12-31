@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Equipment } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -62,7 +61,7 @@ export function MaterialsTable({ equipments, materials, onMaterialsChange }: Mat
       {materials.length === 0 ? (
         <div className="text-center py-8 text-gray-500 border border-dashed rounded-lg">
           <p>No materials added</p>
-          <p className="text-sm mt-2">Click "Add Material" to start adding materials</p>
+          <p className="text-sm mt-2">Click &quot;Add Material&quot; to start adding materials</p>
         </div>
       ) : (
         <div className="overflow-x-auto border rounded-lg">

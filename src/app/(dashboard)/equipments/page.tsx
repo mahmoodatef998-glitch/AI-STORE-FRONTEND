@@ -4,16 +4,13 @@ import { useState } from 'react';
 import { useEquipments } from '@/hooks/useEquipments';
 import { useAuth } from '@/hooks/useAuth';
 import { equipmentAPI } from '@/lib/api';
-import { Equipment } from '@/types';
 import { EquipmentTable } from '@/components/equipments/EquipmentTable';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export default function EquipmentsPage() {
   const { equipments, loading, error, refetch } = useEquipments();
   const { isAdmin } = useAuth();
-  const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const handleDelete = async (id: string) => {

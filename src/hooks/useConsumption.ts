@@ -22,6 +22,7 @@ export function useConsumption(filter?: ConsumptionFilter) {
 
   useEffect(() => {
     fetchConsumption();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(filter)]);
 
   return {

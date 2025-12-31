@@ -27,7 +27,7 @@ export function EquipmentForm({ equipment, onSubmit, onCancel, loading }: Equipm
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [existingEquipments, setExistingEquipments] = useState<Equipment[]>([]);
-  const [isLoadingEquipments, setIsLoadingEquipments] = useState(false);
+  const [, setIsLoadingEquipments] = useState(false);
 
   // Load existing equipments for autocomplete (only when creating new, not editing)
   useEffect(() => {

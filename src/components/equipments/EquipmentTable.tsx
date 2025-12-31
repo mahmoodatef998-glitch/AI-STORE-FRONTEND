@@ -1,7 +1,7 @@
 import { Equipment } from '@/types';
 import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '@/components/ui/Table';
 import { Button } from '@/components/ui/Button';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
 
 interface EquipmentTableProps {
@@ -46,9 +46,9 @@ export function EquipmentTable({ equipments, onDelete, deleting }: EquipmentTabl
         <TableBody>
           {equipments.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={onDelete ? 9 : 8} className="text-center py-8 text-gray-500">
+              <td colSpan={onDelete ? 9 : 8} className="text-center py-8 text-gray-500">
                 No equipments found
-              </TableCell>
+              </td>
             </TableRow>
           ) : (
             equipments.map((equipment) => (

@@ -12,7 +12,7 @@ import Link from 'next/link';
 export default function OrdersPage() {
   const router = useRouter();
   const { isAdmin } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [, setOrders] = useState<Order[]>([]);
   const [ordersWithMaterials, setOrdersWithMaterials] = useState<
     (Order & { materials: (OrderMaterial & { equipment: Equipment | null })[] })[]
   >([]);

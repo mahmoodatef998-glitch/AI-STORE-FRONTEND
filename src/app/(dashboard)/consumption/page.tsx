@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useConsumption } from '@/hooks/useConsumption';
 import { useEquipments } from '@/hooks/useEquipments';
 import { consumptionAPI } from '@/lib/api';

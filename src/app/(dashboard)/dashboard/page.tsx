@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useEquipments } from '@/hooks/useEquipments';
-import { equipmentAPI, notificationAPI, predictionAPI } from '@/lib/api';
+import { equipmentAPI, notificationAPI } from '@/lib/api';
 import { Equipment, Notification } from '@/types';
 import { Card } from '@/components/ui/Card';
-import { formatCurrency } from '@/lib/utils';
 import { LowStockAlerts } from '@/components/dashboard/LowStockAlerts';
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { PredictionChart } from '@/components/dashboard/PredictionChart';
