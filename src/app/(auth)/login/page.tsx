@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient, getSessionToken } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -11,69 +11,157 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string>('');
   const router = useRouter();
-  const supabase = createSupabaseClient();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const supabase = createSupabaseClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          router.push('/dashboard');
+        }
+      } catch (err) {
+        // Ignore errors, user is not logged in
+      }
+    };
+
+    checkSession();
+  }, [router]);
 
   // Convert username/phone to email format for Supabase
   const formatUsernameToEmail = (input: string): string => {
+    // Trim whitespace
+    const trimmed = input.trim();
+    
     // If it's already an email, return as is
-    if (input.includes('@')) {
-      return input;
+    if (trimmed.includes('@')) {
+      return trimmed.toLowerCase();
     }
+    
     // If it's a phone number (starts with + or digits), format it
-    if (/^\+?[0-9]+$/.test(input)) {
-      return `${input}@phone.local`;
+    if (/^\+?[0-9]+$/.test(trimmed)) {
+      return `${trimmed}@phone.local`;
     }
-    // Otherwise, treat as username
-    // Use @example.com instead of @local for better Supabase compatibility
-    return `${input}@example.com`;
+    
+    // Otherwise, treat as username - use @example.com for better Supabase compatibility
+    return `${trimmed}@example.com`;
   };
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setDebugInfo('');
 
-    // Debug: Check environment variables
-    if (typeof window !== 'undefined') {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-      console.log('🔍 Environment Check:');
-      console.log('Supabase URL:', supabaseUrl || '❌ MISSING');
-      console.log('Supabase Key:', supabaseKey ? '✅ EXISTS (' + supabaseKey.substring(0, 20) + '...)' : '❌ MISSING');
+    // Validate inputs
+    if (!username.trim()) {
+      setError('Username is required');
+      setLoading(false);
+      return;
+    }
+
+    if (!password) {
+      setError('Password is required');
+      setLoading(false);
+      return;
     }
 
     try {
+      const supabase = createSupabaseClient();
+
+      // Debug: Check environment variables
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+      
+      const debugMessages: string[] = [];
+      debugMessages.push('🔍 Environment Check:');
+      debugMessages.push(`  Supabase URL: ${supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ MISSING'}`);
+      debugMessages.push(`  Supabase Key: ${supabaseKey ? '✅ EXISTS (' + supabaseKey.substring(0, 20) + '...)' : '❌ MISSING'}`);
+      
       // Convert username/phone to email format
       const emailFormat = formatUsernameToEmail(username);
+      
+      debugMessages.push('');
+      debugMessages.push('🔐 Login Attempt:');
+      debugMessages.push(`  Username input: "${username}"`);
+      debugMessages.push(`  Email format: "${emailFormat}"`);
+      debugMessages.push(`  Password length: ${password.length}`);
+      
+      setDebugInfo(debugMessages.join('\n'));
+      console.log(debugMessages.join('\n'));
 
-      // Debug: Log what we're sending
-      console.log('🔐 Login Attempt:');
-      console.log('  Username input:', username);
-      console.log('  Email format:', emailFormat);
-      console.log('  Password length:', password.length);
-
+      // Attempt login
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: emailFormat,
-        password,
+        password: password,
       });
 
-      if (authError) throw authError;
-
-      if (data.user) {
-        // Get fresh session and store token
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.access_token) {
-          localStorage.setItem('supabase.auth.token', session.access_token);
+      if (authError) {
+        console.error('❌ Auth Error:', authError);
+        console.error('Error Code:', authError.status);
+        console.error('Error Message:', authError.message);
+        
+        // Provide user-friendly error messages
+        let errorMessage = 'Failed to login';
+        
+        if (authError.message.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid username or password. Please check your credentials.';
+        } else if (authError.message.includes('Email not confirmed')) {
+          errorMessage = 'Please confirm your email address before logging in.';
+        } else if (authError.message.includes('Too many requests')) {
+          errorMessage = 'Too many login attempts. Please try again later.';
+        } else {
+          errorMessage = authError.message || 'An error occurred during login';
         }
-        // Wait a bit to ensure token is stored
-        await new Promise(resolve => setTimeout(resolve, 100));
-        router.push('/dashboard');
-        router.refresh();
+        
+        setError(errorMessage);
+        setLoading(false);
+        return;
       }
+
+      if (!data.user) {
+        setError('Login failed: No user data received');
+        setLoading(false);
+        return;
+      }
+
+      // Verify session was created
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session Error:', sessionError);
+        setError('Failed to create session. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      if (!session) {
+        setError('Login failed: No session created');
+        setLoading(false);
+        return;
+      }
+
+      // Store token in localStorage for API calls
+      if (session.access_token) {
+        localStorage.setItem('supabase.auth.token', session.access_token);
+        console.log('✅ Token stored successfully');
+      }
+
+      // Wait a moment to ensure everything is saved
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Redirect to dashboard
+      console.log('✅ Login successful, redirecting to dashboard...');
+      router.push('/dashboard');
+      router.refresh();
+
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to login');
-    } finally {
+      console.error('❌ Unexpected error:', err);
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setLoading(false);
     }
   };
@@ -89,12 +177,15 @@ export default function LoginPage() {
             Sign in to your account
           </p>
         </div>
+        
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
+              <p className="font-medium">Error</p>
+              <p className="text-sm">{error}</p>
             </div>
           )}
+          
           <div className="space-y-4">
             <Input
               label="Username or Phone Number"
@@ -103,6 +194,8 @@ export default function LoginPage() {
               onChange={(e) => setUsername(e.target.value)}
               required
               placeholder="admin or 00243540000"
+              disabled={loading}
+              autoComplete="username"
             />
             <Input
               label="Password"
@@ -111,14 +204,27 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
+              disabled={loading}
+              autoComplete="current-password"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={loading || !username.trim() || !password}
+          >
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
+
+        {/* Debug Info (only in development) */}
+        {process.env.NODE_ENV === 'development' && debugInfo && (
+          <div className="mt-4 p-4 bg-gray-100 rounded text-xs font-mono whitespace-pre-wrap overflow-auto max-h-48">
+            {debugInfo}
+          </div>
+        )}
       </div>
     </div>
   );
 }
-

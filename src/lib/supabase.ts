@@ -1,29 +1,114 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Get Supabase URL and Anon Key from environment variables
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+// Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('❌ Missing Supabase environment variables!');
+  const error = 'Missing Supabase environment variables. Please check your .env.local file.';
+  console.error('❌', error);
   console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅' : '❌');
   console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅' : '❌');
-  throw new Error('Missing Supabase environment variables. Please check your .env.local file.');
+  
+  // In production, we should throw an error
+  if (typeof window === 'undefined') {
+    throw new Error(error);
+  }
 }
 
-// Client-side Supabase client
-export const createSupabaseClient = () => {
+// Client-side Supabase client with optimized configuration
+export const createSupabaseClient = (): SupabaseClient => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are not configured');
+  }
+
   return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      flowType: 'pkce', // Use PKCE flow for better security
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'ai-store-frontend',
+      },
     },
   });
 };
 
-// Server-side Supabase client (for API routes)
-export const createServerSupabaseClient = () => {
-  return createClient(supabaseUrl, supabaseAnonKey);
+// Server-side Supabase client (for API routes and Server Components)
+export const createServerSupabaseClient = (): SupabaseClient => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are not configured');
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
 };
 
+// Get current session token
+export const getSessionToken = async (): Promise<string | null> => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const supabase = createSupabaseClient();
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Error getting session:', error);
+      return null;
+    }
+
+    return session?.access_token || null;
+  } catch (error) {
+    console.error('Error in getSessionToken:', error);
+    return null;
+  }
+};
+
+// Check if user is authenticated
+export const isAuthenticated = async (): Promise<boolean> => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  try {
+    const supabase = createSupabaseClient();
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      return false;
+    }
+
+    return !!session?.user;
+  } catch (error) {
+    return false;
+  }
+};
+
+// Sign out user
+export const signOut = async (): Promise<void> => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const supabase = createSupabaseClient();
+    await supabase.auth.signOut();
+    
+    // Clear any stored tokens
+    localStorage.removeItem('supabase.auth.token');
+  } catch (error) {
+    console.error('Error signing out:', error);
+    throw error;
+  }
+};

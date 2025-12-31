@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseClient, signOut as supabaseSignOut } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
 
 export function useAuth() {
@@ -77,10 +77,18 @@ export function useAuth() {
     };
   }, [supabase, router]);
 
-  const signOut = async () => {
-    localStorage.removeItem('supabase.auth.token');
-    await supabase.auth.signOut();
-    router.push('/login');
+  const handleSignOut = async () => {
+    try {
+      localStorage.removeItem('supabase.auth.token');
+      await supabaseSignOut();
+      router.push('/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Still redirect even if sign out fails
+      localStorage.removeItem('supabase.auth.token');
+      router.push('/login');
+    }
   };
 
   const getUserRole = (): string => {
@@ -94,7 +102,7 @@ export function useAuth() {
   return {
     user,
     loading,
-    signOut,
+    signOut: handleSignOut,
     getUserRole,
     isAdmin,
   };
