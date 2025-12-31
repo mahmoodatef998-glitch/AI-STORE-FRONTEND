@@ -1,0 +1,35 @@
+==========================================
+إصلاح سريع لـ Environment Variables في Vercel
+==========================================
+
+المشكلة: "invalid API key" في Vercel
+
+الحل السريع:
+1. اذهب إلى Vercel Dashboard → Settings → Environment Variables
+2. أضف هذه المتغيرات:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. NEXT_PUBLIC_SUPABASE_URL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+https://nueufozblbymuvzlbywf.supabase.co
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. NEXT_PUBLIC_SUPABASE_ANON_KEY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51ZXVmbG9zYmxieW11dnpsYnl3ZiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzY2OTk1NjEzLCJleHAiOjIwODI1NzE2MTN9.mhM0f4dV2cl7tjznIYzFbgXmmhdUWYDGGT5AXlCPCd8
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. NEXT_PUBLIC_API_URL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+https://your-backend.railway.app/api
+(استبدل بـ URL الفعلي من Railway)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ مهم جداً:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- اختر Environment: Production, Preview, Development
+- بعد إضافة المتغيرات، اضغط Redeploy
+- تأكد من عدم وجود مسافات في القيم
+
+==========================================
+
