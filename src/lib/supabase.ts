@@ -6,15 +6,28 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
-  const error = 'Missing Supabase environment variables. Please check your .env.local file.';
+  const error = 'Missing Supabase environment variables. Please check your .env.local file or Vercel Environment Variables.';
   console.error('❌', error);
-  console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅' : '❌');
-  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅' : '❌');
+  console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ MISSING');
+  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ EXISTS (' + supabaseAnonKey.substring(0, 20) + '...)' : '❌ MISSING');
+  console.error('');
+  console.error('📋 To fix this:');
+  console.error('1. Go to Vercel Dashboard → Settings → Environment Variables');
+  console.error('2. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  console.error('3. Redeploy your application');
+  console.error('');
   
   // In production, we should throw an error
   if (typeof window === 'undefined') {
     throw new Error(error);
   }
+}
+
+// Additional validation: Check if API key looks valid (starts with eyJ)
+if (supabaseAnonKey && !supabaseAnonKey.startsWith('eyJ')) {
+  console.warn('⚠️  WARNING: NEXT_PUBLIC_SUPABASE_ANON_KEY does not look like a valid JWT token.');
+  console.warn('   Make sure you are using the "anon public" key, not the "service_role" key.');
+  console.warn('   Get it from: Supabase Dashboard → Settings → API → anon/public key');
 }
 
 // Client-side Supabase client with optimized configuration
