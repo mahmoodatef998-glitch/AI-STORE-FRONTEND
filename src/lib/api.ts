@@ -53,9 +53,18 @@ async function fetchAPI<T>(
       headers,
     });
 
-    const data = await response.json();
+    // Check if response is ok before trying to parse JSON
+    if (!response.ok) {
+      // Try to parse error message from response
+      let errorMessage = `API request failed with status ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
 
-      if (!response.ok) {
       // If unauthorized, clear token and redirect to login
       if (response.status === 401) {
         localStorage.removeItem('supabase.auth.token');
@@ -67,11 +76,35 @@ async function fetchAPI<T>(
           }, 100);
         }
       }
-      throw new Error(data.error || 'API request failed');
+
+      // Log CORS errors specifically
+      if (response.status === 0 || errorMessage.includes('CORS') || errorMessage.includes('Failed to fetch')) {
+        console.error('❌ CORS or Network Error:', {
+          endpoint,
+          status: response.status,
+          statusText: response.statusText,
+          url: `${API_URL}${endpoint}`,
+        });
+        throw new Error('Network error: Unable to connect to server. Please check your connection and try again.');
+      }
+
+      throw new Error(errorMessage);
     }
 
+    // Parse JSON only if response is ok
+    const data = await response.json();
     return data;
   } catch (error) {
+    // Handle network errors (CORS, connection refused, etc.)
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('❌ Network Error:', {
+        endpoint,
+        url: `${API_URL}${endpoint}`,
+        error: error.message,
+      });
+      throw new Error('Network error: Unable to connect to server. Please check your connection and CORS settings.');
+    }
+    
     console.error('API Error:', error);
     throw error;
   }
