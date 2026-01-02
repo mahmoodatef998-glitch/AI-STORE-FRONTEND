@@ -72,3 +72,4 @@ export function NotificationList({ notifications, loading, onMarkAsSent }: Notif
   );
 }
 
+

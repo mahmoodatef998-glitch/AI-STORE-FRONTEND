@@ -23,3 +23,4 @@ export function formatCurrency(amount: number | null): string {
   }).format(amount);
 }
 
+

@@ -80,7 +80,31 @@ export default function LoginPage() {
       const debugMessages: string[] = [];
       debugMessages.push('🔍 Environment Check:');
       debugMessages.push(`  Supabase URL: ${supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ MISSING'}`);
-      debugMessages.push(`  Supabase Key: ${supabaseKey ? '✅ EXISTS (' + supabaseKey.substring(0, 20) + '...)' : '❌ MISSING'}`);
+      
+      if (supabaseKey) {
+        if (supabaseKey.startsWith('eyJ')) {
+          debugMessages.push(`  Supabase Key: ✅ EXISTS (${supabaseKey.substring(0, 20)}...) - Looks valid`);
+        } else {
+          debugMessages.push(`  Supabase Key: ⚠️ EXISTS (${supabaseKey.substring(0, 20)}...) - May be invalid (should start with 'eyJ')`);
+        }
+      } else {
+        debugMessages.push(`  Supabase Key: ❌ MISSING`);
+      }
+      
+      // If environment variables are missing, show error immediately
+      if (!supabaseUrl || !supabaseKey) {
+        const missingVars = [];
+        if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
+        if (!supabaseKey) missingVars.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+        
+        setError(
+          `Missing Environment Variables: ${missingVars.join(', ')}\n\n` +
+          'Please add them in Vercel Dashboard → Settings → Environment Variables and redeploy.'
+        );
+        setLoading(false);
+        console.error('❌ Missing Environment Variables:', missingVars);
+        return;
+      }
       
       // Convert username/phone to email format
       const emailFormat = formatUsernameToEmail(username);
@@ -105,7 +129,39 @@ export default function LoginPage() {
         console.error('Error Code:', authError.status);
         console.error('Error Message:', authError.message);
         
-        // Provide user-friendly error messages
+        // Check if it's an API key issue
+        if (authError.message.includes('Invalid API key') || authError.status === 401) {
+          const errorDetails = [
+            '❌ Invalid API key error detected!',
+            '',
+            'This usually means:',
+            '1. Environment Variables are missing in Vercel',
+            '2. Environment Variables are incorrect',
+            '3. Application needs to be redeployed after adding variables',
+            '',
+            '🔧 To fix:',
+            '1. Go to Vercel Dashboard → Settings → Environment Variables',
+            '2. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY',
+            '3. Redeploy the application (Use existing Build Cache = No)',
+            '',
+            '📋 Current Environment Status:',
+            `  URL: ${supabaseUrl ? '✅ Set' : '❌ MISSING'}`,
+            `  Key: ${supabaseKey ? (supabaseKey.startsWith('eyJ') ? '✅ Set (looks valid)' : '⚠️ Set but may be invalid') : '❌ MISSING'}`,
+          ];
+          
+          console.error(errorDetails.join('\n'));
+          
+          setError(
+            'Invalid API key. Please check Vercel Environment Variables:\n' +
+            '1. Go to Vercel → Settings → Environment Variables\n' +
+            '2. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY\n' +
+            '3. Redeploy the application'
+          );
+          setLoading(false);
+          return;
+        }
+        
+        // Provide user-friendly error messages for other errors
         let errorMessage = 'Failed to login';
         
         if (authError.message.includes('Invalid login credentials')) {

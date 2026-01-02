@@ -134,3 +134,4 @@ Password: 00243540000
 
 **إذا استمرت المشكلة، تحقق من Supabase Dashboard → Authentication → Users**
 
+

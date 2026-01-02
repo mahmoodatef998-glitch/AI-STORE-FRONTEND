@@ -143,3 +143,4 @@ Password: 00243540000
 - Screenshot من Network Tab
 - Screenshot من Supabase Dashboard → Users
 
+

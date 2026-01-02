@@ -49,3 +49,4 @@ export function LowStockAlerts({ equipments }: LowStockAlertsProps) {
   );
 }
 
+

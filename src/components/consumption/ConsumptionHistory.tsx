@@ -42,3 +42,4 @@ export function ConsumptionHistory({ consumption, loading }: ConsumptionHistoryP
   );
 }
 
+

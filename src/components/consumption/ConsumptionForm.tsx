@@ -114,3 +114,4 @@ export function ConsumptionForm({ equipments, onSubmit, onCancel }: ConsumptionF
   );
 }
 
+

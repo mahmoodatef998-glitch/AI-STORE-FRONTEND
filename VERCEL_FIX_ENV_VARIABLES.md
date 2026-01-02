@@ -139,3 +139,4 @@ NEXT_PUBLIC_API_URL=https://your-backend.railway.app/api
 
 **بعد إضافة Environment Variables وإعادة Deploy، يجب أن يعمل تسجيل الدخول! ✅**
 
+
