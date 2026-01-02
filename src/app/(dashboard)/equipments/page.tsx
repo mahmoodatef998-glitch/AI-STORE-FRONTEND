@@ -11,7 +11,7 @@ import { Equipment } from '@/types';
 
 export default function EquipmentsPage() {
   const { equipments, loading, error, refetch } = useEquipments();
-  const { isAdmin, user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: authLoading } = useAuth();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [localEquipments, setLocalEquipments] = useState<Equipment[]>([]);
 
