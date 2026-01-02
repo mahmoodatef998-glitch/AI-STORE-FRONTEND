@@ -30,13 +30,22 @@ if (supabaseAnonKey && !supabaseAnonKey.startsWith('eyJ') && !supabaseAnonKey.st
   console.warn('   Get it from: Supabase Dashboard → Settings → API → PUBLISHABLE key (or anon/public key)');
 }
 
-// Client-side Supabase client with optimized configuration
+// Singleton pattern: Create a single Supabase client instance to avoid "Multiple GoTrueClient instances" warning
+let supabaseClientInstance: SupabaseClient | null = null;
+
+// Client-side Supabase client with optimized configuration (Singleton pattern)
 export const createSupabaseClient = (): SupabaseClient => {
+  // Return existing instance if available (client-side only)
+  if (typeof window !== 'undefined' && supabaseClientInstance) {
+    return supabaseClientInstance;
+  }
+
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Supabase environment variables are not configured');
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  // Create new instance
+  const client = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -50,6 +59,13 @@ export const createSupabaseClient = (): SupabaseClient => {
       },
     },
   });
+
+  // Cache instance for client-side only
+  if (typeof window !== 'undefined') {
+    supabaseClientInstance = client;
+  }
+
+  return client;
 };
 
 // Server-side Supabase client (for API routes and Server Components)
@@ -66,6 +82,11 @@ export const createServerSupabaseClient = (): SupabaseClient => {
   });
 };
 
+// Get the singleton Supabase client instance
+export const getSupabaseClient = (): SupabaseClient => {
+  return createSupabaseClient();
+};
+
 // Get current session token
 export const getSessionToken = async (): Promise<string | null> => {
   if (typeof window === 'undefined') {
@@ -73,7 +94,7 @@ export const getSessionToken = async (): Promise<string | null> => {
   }
 
   try {
-    const supabase = createSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
@@ -95,7 +116,7 @@ export const isAuthenticated = async (): Promise<boolean> => {
   }
 
   try {
-    const supabase = createSupabaseClient();
+    const supabase = getSupabaseClient();
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error) {
@@ -115,11 +136,16 @@ export const signOut = async (): Promise<void> => {
   }
 
   try {
-    const supabase = createSupabaseClient();
+    const supabase = getSupabaseClient();
     await supabase.auth.signOut();
     
     // Clear any stored tokens
     localStorage.removeItem('supabase.auth.token');
+    
+    // Clear the singleton instance to force recreation on next use
+    if (typeof window !== 'undefined') {
+      supabaseClientInstance = null;
+    }
   } catch (error) {
     console.error('Error signing out:', error);
     throw error;
