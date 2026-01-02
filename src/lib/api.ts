@@ -114,7 +114,15 @@ async function fetchAPI<T>(
 export const equipmentAPI = {
   getAll: async (): Promise<Equipment[]> => {
     const response = await fetchAPI<Equipment[]>('/equipments');
-    return response.data || [];
+    // Backend returns ApiResponse<T>, so extract data
+    if (response && typeof response === 'object' && 'data' in response) {
+      return (response as ApiResponse<Equipment[]>).data || [];
+    }
+    // Fallback: if response is already an array, return it
+    if (Array.isArray(response)) {
+      return response;
+    }
+    return [];
   },
 
   getById: async (id: string): Promise<Equipment> => {
