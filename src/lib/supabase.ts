@@ -23,11 +23,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
   }
 }
 
-// Additional validation: Check if API key looks valid (starts with eyJ)
-if (supabaseAnonKey && !supabaseAnonKey.startsWith('eyJ')) {
-  console.warn('⚠️  WARNING: NEXT_PUBLIC_SUPABASE_ANON_KEY does not look like a valid JWT token.');
-  console.warn('   Make sure you are using the "anon public" key, not the "service_role" key.');
-  console.warn('   Get it from: Supabase Dashboard → Settings → API → anon/public key');
+// Additional validation: Check if API key looks valid (starts with eyJ or sb_publishable)
+if (supabaseAnonKey && !supabaseAnonKey.startsWith('eyJ') && !supabaseAnonKey.startsWith('sb_publishable')) {
+  console.warn('⚠️  WARNING: NEXT_PUBLIC_SUPABASE_ANON_KEY does not look like a valid key.');
+  console.warn('   Make sure you are using the "publishable" or "anon public" key, not the "service_role" key.');
+  console.warn('   Get it from: Supabase Dashboard → Settings → API → PUBLISHABLE key (or anon/public key)');
 }
 
 // Client-side Supabase client with optimized configuration

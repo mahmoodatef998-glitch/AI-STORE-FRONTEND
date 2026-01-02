@@ -82,10 +82,10 @@ export default function LoginPage() {
       debugMessages.push(`  Supabase URL: ${supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ MISSING'}`);
       
       if (supabaseKey) {
-        if (supabaseKey.startsWith('eyJ')) {
+        if (supabaseKey.startsWith('eyJ') || supabaseKey.startsWith('sb_publishable')) {
           debugMessages.push(`  Supabase Key: ✅ EXISTS (${supabaseKey.substring(0, 20)}...) - Looks valid`);
         } else {
-          debugMessages.push(`  Supabase Key: ⚠️ EXISTS (${supabaseKey.substring(0, 20)}...) - May be invalid (should start with 'eyJ')`);
+          debugMessages.push(`  Supabase Key: ⚠️ EXISTS (${supabaseKey.substring(0, 20)}...) - May be invalid (should start with 'eyJ' or 'sb_publishable')`);
         }
       } else {
         debugMessages.push(`  Supabase Key: ❌ MISSING`);
@@ -146,7 +146,7 @@ export default function LoginPage() {
             '',
             '📋 Current Environment Status:',
             `  URL: ${supabaseUrl ? '✅ Set' : '❌ MISSING'}`,
-            `  Key: ${supabaseKey ? (supabaseKey.startsWith('eyJ') ? '✅ Set (looks valid)' : '⚠️ Set but may be invalid') : '❌ MISSING'}`,
+            `  Key: ${supabaseKey ? ((supabaseKey.startsWith('eyJ') || supabaseKey.startsWith('sb_publishable')) ? '✅ Set (looks valid)' : '⚠️ Set but may be invalid') : '❌ MISSING'}`,
           ];
           
           console.error(errorDetails.join('\n'));
