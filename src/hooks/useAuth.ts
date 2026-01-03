@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient, signOut as supabaseSignOut } from '@/lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -7,10 +7,12 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const supabase = createSupabaseClient();
+  // Use useMemo to prevent recreation on every render
+  const supabase = useMemo(() => createSupabaseClient(), []);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    let mounted = true;
+    isMountedRef.current = true;
 
     // Get initial session
     const initAuth = async () => {
@@ -19,14 +21,14 @@ export function useAuth() {
         
         if (error) {
           console.error('Session error:', error);
-          if (mounted) {
+          if (isMountedRef.current) {
             setUser(null);
             setLoading(false);
           }
           return;
         }
 
-        if (mounted) {
+        if (isMountedRef.current) {
           setUser(session?.user ?? null);
           setLoading(false);
           
@@ -39,7 +41,7 @@ export function useAuth() {
         }
       } catch (err) {
         console.error('Auth init error:', err);
-        if (mounted) {
+        if (isMountedRef.current) {
           setUser(null);
           setLoading(false);
         }
@@ -52,7 +54,7 @@ export function useAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
+      if (!isMountedRef.current) return;
 
       setUser(session?.user ?? null);
       setLoading(false);
@@ -72,7 +74,7 @@ export function useAuth() {
     });
 
     return () => {
-      mounted = false;
+      isMountedRef.current = false;
       subscription.unsubscribe();
     };
   }, [supabase, router]);

@@ -1,26 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useEquipments } from '@/hooks/useEquipments';
 import { useAuth } from '@/hooks/useAuth';
 import { equipmentAPI } from '@/lib/api';
 import { EquipmentTable } from '@/components/equipments/EquipmentTable';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-import { Equipment } from '@/types';
 
 export default function EquipmentsPage() {
   const { equipments, loading, error, refetch } = useEquipments();
   const { isAdmin, loading: authLoading } = useAuth();
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [localEquipments, setLocalEquipments] = useState<Equipment[]>([]);
-
-  // Sync local state with hook state
-  useEffect(() => {
-    if (equipments.length > 0) {
-      setLocalEquipments(equipments);
-    }
-  }, [equipments]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this equipment?')) return;
@@ -30,9 +21,6 @@ export default function EquipmentsPage() {
       console.log('🗑️ Deleting equipment:', id);
       
       await equipmentAPI.delete(id);
-      
-      // Optimistically update local state
-      setLocalEquipments(prev => prev.filter(eq => eq.id !== id));
       
       // Refetch to ensure consistency
       await refetch();
@@ -113,7 +101,7 @@ export default function EquipmentsPage() {
   }
 
   // Show empty state
-  if (localEquipments.length === 0 && !loading) {
+  if (equipments.length === 0 && !loading && !error) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -167,7 +155,7 @@ export default function EquipmentsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Equipments</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Manage your equipment inventory ({localEquipments.length} items)
+            Manage your equipment inventory ({equipments.length} items)
           </p>
         </div>
         {isAdmin() && (
@@ -178,7 +166,7 @@ export default function EquipmentsPage() {
       </div>
 
       <EquipmentTable
-        equipments={localEquipments}
+        equipments={equipments}
         onDelete={isAdmin() ? handleDelete : undefined}
         deleting={deleting}
       />

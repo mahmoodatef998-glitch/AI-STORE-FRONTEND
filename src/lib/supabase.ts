@@ -4,24 +4,29 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  const error = 'Missing Supabase environment variables. Please check your .env.local file or Vercel Environment Variables.';
-  console.error('❌', error);
-  console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ MISSING');
-  console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ EXISTS (' + supabaseAnonKey.substring(0, 20) + '...)' : '❌ MISSING');
-  console.error('');
-  console.error('📋 To fix this:');
-  console.error('1. Go to Vercel Dashboard → Settings → Environment Variables');
-  console.error('2. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
-  console.error('3. Redeploy your application');
-  console.error('');
-  
-  // In production, we should throw an error
-  if (typeof window === 'undefined') {
-    throw new Error(error);
+// Validate environment variables - CRITICAL for production
+const validateSupabaseEnv = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    const error = 'Missing Supabase environment variables. Please check your .env.local file or Vercel Environment Variables.';
+    console.error('❌', error);
+    console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ ' + supabaseUrl.substring(0, 30) + '...' : '❌ MISSING');
+    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ EXISTS (' + supabaseAnonKey.substring(0, 20) + '...)' : '❌ MISSING');
+    console.error('');
+    console.error('📋 To fix this:');
+    console.error('1. Go to Vercel Dashboard → Settings → Environment Variables');
+    console.error('2. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    console.error('3. Redeploy your application');
+    console.error('');
+    
+    // In production, throw error immediately
+    if (process.env.NODE_ENV === 'production' || typeof window === 'undefined') {
+      throw new Error(error);
+    }
   }
-}
+};
+
+// Validate on module load
+validateSupabaseEnv();
 
 // Additional validation: Check if API key looks valid (starts with eyJ or sb_publishable)
 if (supabaseAnonKey && !supabaseAnonKey.startsWith('eyJ') && !supabaseAnonKey.startsWith('sb_publishable')) {

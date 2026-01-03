@@ -1,6 +1,28 @@
 import { ApiResponse, Equipment, EquipmentConsumption, Notification, Prediction, ConsumptionFilter, Order, OrderMaterial, StockMovement, CreateOrderDto, StockMovementFilter, OrderAttachment } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+// Validate API URL in production
+const getAPIUrl = (): string => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  
+  if (!apiUrl) {
+    if (typeof window !== 'undefined') {
+      // Client-side: throw error
+      const error = 'NEXT_PUBLIC_API_URL is not configured. Please set it in Vercel Environment Variables.';
+      console.error('❌', error);
+      throw new Error(error);
+    }
+    // Server-side: use localhost fallback only in development
+    if (process.env.NODE_ENV === 'development') {
+      return 'http://localhost:3001/api';
+    }
+    throw new Error('NEXT_PUBLIC_API_URL is required in production');
+  }
+  
+  // Remove trailing slash
+  return apiUrl.replace(/\/$/, '');
+};
+
+const API_URL = getAPIUrl();
 
 async function fetchAPI<T>(
   endpoint: string,

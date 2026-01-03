@@ -24,9 +24,14 @@ export default function DashboardLayout({
   // Remove browser extension attributes that cause hydration warnings
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const { fixHydrationWarnings } = require('@/lib/fix-hydration');
-      const cleanup = fixHydrationWarnings();
-      return cleanup;
+      try {
+        const { fixHydrationWarnings } = require('@/lib/fix-hydration');
+        const cleanup = fixHydrationWarnings();
+        return cleanup;
+      } catch (error) {
+        // Silently fail if fix-hydration module doesn't exist
+        console.warn('fix-hydration module not found:', error);
+      }
     }
   }, []);
 
